@@ -29,6 +29,33 @@ class ConvTransposeNorm2d(nn.Module):
         x = self.norm(x)
         return x
 
+class ConvInstanceNorm2d(nn.Module):
+    def __init__(self,in_channels: int, out_channels: int, kernel_size: Union[int, Tuple[int]],
+                stride: Union[int, Tuple[int]] = 1, padding: Union[int, Tuple[int]] = 0, 
+                dilation: Union[int, Tuple[int]]= 1, groups: int = 1, bias: bool = True, padding_mode: str = 'zeros'):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels,out_channels,kernel_size,stride,padding,dilation,groups,bias,padding_mode)
+        self.norm = nn.InstanceNorm2d(out_channels)
+
+    def forward(self,x):
+        x = self.conv(x)
+        x = self.norm(x)
+        return x
+
+class ConvTransposeInstanceNorm2d(nn.Module):
+    def __init__(self,in_channels: int, out_channels: int, kernel_size: Union[int, Tuple[int]],
+                stride: Union[int, Tuple[int]] = 1, padding: Union[int, Tuple[int]] = 0, output_padding: Union[int, Tuple[int]] = 0,
+                dilation: Union[int, Tuple[int]]= 1, groups: int = 1, bias: bool = True, padding_mode: str = 'zeros'
+    ):
+        super().__init__()
+        self.dconv = nn.ConvTranspose2d(in_channels,out_channels,kernel_size,stride,padding,output_padding,groups,bias,dilation,padding_mode)
+        self.norm = nn.InstanceNorm2d(out_channels)
+
+    def forward(self,x):
+        x = self.dconv(x)
+        x = self.norm(x)
+        return x
+
 class ResBlock2d(nn.Module):
     def __init__(self,in_channels: int, out_channels: int, kernel_size: Union[int, Tuple[int]],
                 channel_divsor:int=4):
