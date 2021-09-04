@@ -149,6 +149,33 @@ class Discriminator(nn.Module):
         for p in self.parameters():
             nn.init.normal_(p.data,0.0,self.hparams.init_gain)
 
+class GANLoss(nn.Module):
+    def __init__(self,gan_mode, target_real_label=1.0, target_fake_label=0.0):
+        super().__init__()
+        self.real_label = torch.tensor(target_real_label)
+        self.fake_label = torch.tensor(target_fake_label)
+        self.register_buffer("real_label",self.real_label)
+        self.register_buffer("fake_label",self.fake_label)
+        self.gan_mode = gan_mode
+
+        if gan_mode == 'lsgan':
+            self.loss = nn.MSELoss()
+        elif gan_mode == 'vanilla':
+            self.loss = nn.BCEWithLogitsLoss()
+        else:
+            raise NotImplementedError(f"gan mode {gan_mode} is not implemented.")
+    
+    def get_target_tensor(self, prediction:torch.Tensor, target_is_real:bool) -> torch.Tensor:
+        if target_is_real:
+            target_tensor = self.real_label
+        else:
+            target_tensor = self.fake_label
+        return target_tensor.expand_as(prediction)
+
+    def __call__(self, prediction:torch.Tensor, target_is_real:bool) -> torch.Tensor:
+        target_tensor = self.get_target_tensor(prediction,target_is_real)
+        loss = self.loss(prediction, target_tensor)
+        return loss
 class CycleGAN(pl.LightningModule):
     pass
 
