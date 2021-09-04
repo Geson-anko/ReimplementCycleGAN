@@ -14,7 +14,8 @@ import torch.nn as nn
 class generator:
     channels = channels
     height,width = height,width
-    
+    init_gain:float = 0.02
+
     norm_mode:str = 'InstanceNorm' # "BatchNorm" or "InstanceNorm"
     norm_layer:nn.Module= nn.InstanceNorm2d
     padding_mode = 'reflect'
@@ -27,6 +28,6 @@ class discriminator:
     channels = channels
     ndf:int = 64
     n_layers:int = 3
-    norm_mode:str = "BatchNorm"
-    norm_layer:nn.Module= nn.BatchNorm2d
+
+    init_gain:float = 0.02
     pass

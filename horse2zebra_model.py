@@ -56,6 +56,8 @@ class Generator(nn.Module):
         #
         self.layers = nn.Sequential(*layers)
 
+        self.init_weight()
+
     def forward(self,x:torch.Tensor):
         h = self.layers(x) + 0.5
         return h
@@ -102,13 +104,55 @@ class Generator(nn.Module):
         out = torch.clamp(out,0.0,1.0)
         return out
 
+    def init_weight(self):
+        for p in self.parameters():
+            nn.init.normal_(p.data,0.0,self.hparams.init_gain)
 class Discriminator(nn.Module):
-    pass
+    def __init__(self,hparams:hparams.discriminator):
+        super().__init__()
+        self.hparams  = hparams
+        inch = hparams.channels
+        ndf = hparams.ndf
+        n_layers = hparams.n_layers
+
+        kw = 4
+        padw = 1
+        layers = [ConvNorm2d(inch,ndf,kw,2,padw),nn.LeakyReLU(0.2,True)]
+        chs = [ndf * min((2**i),8) for i in range(n_layers + 1)]
+        for idx in range(n_layers-1):
+            ch_prev,ch = chs[idx],chs[idx+1]
+            l = [
+                ConvNorm2d(ch_prev,ch,kw,2,padw),
+                nn.LeakyReLU(0.2,True)
+            ]
+            layers += l
+        
+        ch_prev,ch = chs[-2],chs[-1]
+        layers += [
+            ConvNorm2d(ch_prev,ch,kw,padding=padw),
+            nn.LeakyReLU(0.2,True)
+        ]
+        layers += [nn.Conv2d(chs[-1],1,kw,padding=padw)]
+        self.layers = nn.Sequential(*layers)
+
+        self.init_weight()
+
+    def forward(self,x:torch.Tensor):
+        h = self.layers(x)
+        return h
+    
+    def summary(self):
+        dummy = torch.randn(1,hparams.channels,hparams.height,hparams.width)
+        summary(self,dummy)
+    
+    def init_weight(self):
+        for p in self.parameters():
+            nn.init.normal_(p.data,0.0,self.hparams.init_gain)
 
 class CycleGAN(pl.LightningModule):
     pass
 
 if __name__ == '__main__':
-    model = Generator(hparams.generator)
+    model = Discriminator(hparams.discriminator)
     model.summary()
     
