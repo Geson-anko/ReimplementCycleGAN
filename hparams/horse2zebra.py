@@ -5,10 +5,19 @@ channels:int = 3
 height:int = 256
 width:int = 256
 
+max_epochs:int = 200
+decay_start_epoch:int = 100
 
 init_gain:float = 0.02
 init_type:str = 'normal'
 
+lr:float = 0.0002
+beta1:float = 0.5
+lambda_cycle:float = 10.0
+lambda_identity:float = 0.1
+
+image_pool_size:int = 50
+gan_mode:str = 'lsgan'
 
 import torch.nn as nn
 class generator:
